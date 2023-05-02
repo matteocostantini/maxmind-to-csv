@@ -55,5 +55,5 @@ reader.close()
 with open("indirizzi_ip_con_paese.csv", mode="w", newline="") as csv_file:
     writer = csv.writer(csv_file, delimiter=",")
     writer.writerow(["Indirizzo IP", "Continente", "Paese"])
-    for ip_address, country in country_list:
-        writer.writerow([ip_address, country])
+    for ip_address, continent, country in country_list:
+        writer.writerow([ip_address, continent, country])
