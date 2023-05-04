@@ -7,6 +7,7 @@ from geoipupdate import GeoIpUpdater
 # Path al file che contiene i dati del paese associati agli indirizzi IP
 mmdb_file_path = "GeoLite2-City.mmdb"
 mmdb_file_path_asn = "GeoLite2-ASN.mmdb"
+mmdb_file_path_country = "GeoLite2-Country.mmdb"
 # Funzione che restituisce il continente associato all'indirizzo IP
 def get_continent(ip_address, reader):
     try:
@@ -15,7 +16,10 @@ def get_continent(ip_address, reader):
         return "N/A"
     
     try:
-        return response['continent']['names']['en']
+        if response==None:
+            return "N/A"
+        else:
+            return response['continent']['names']['en']
     except KeyError:
         return "N/A"
     
@@ -27,11 +31,10 @@ def get_country(ip_address, reader):
         return "N/A"
     
     try:
-        #response = reader.get(ip_address)
-        #response = reader.country(ip_address)
-        #response = reader.get(ip_address)
-        #country = response.country
-        return response['country']['names']['en']
+        if response==None:
+            return "N/A"
+        else:
+            return response['country']['names']['en']
     except KeyError:
         return "N/A"
 
@@ -43,7 +46,10 @@ def get_city(ip_address, reader):
         return "N/A"
     
     try:
-        return response['city']['names']['en']
+        if response==None:
+            return "N/A"
+        else:
+            return response['city']['names']['en']
     except KeyError:
         return "N/A"
     
@@ -54,7 +60,10 @@ def get_asn_autonomous_system_organization(ip_address, reader):
         return "N/A"
     
     try:
-        return response['autonomous_system_organization']
+        if response==None:
+            return "N/A"
+        else:
+            return response['autonomous_system_organization']
     except KeyError:
         return "N/A"
     
@@ -65,7 +74,10 @@ def get_asn_autonomous_system_number(ip_address, reader):
         return "N/A"
     
     try:
-        return response['autonomous_system_number']
+        if response==None:
+            return "N/A"
+        else:
+            return response['autonomous_system_number']
     except KeyError:
         return "N/A"
 
@@ -102,14 +114,14 @@ with open("IP.csv") as csv_file:
 # Carica il database MaxMindDB
 reader = maxminddb.open_database(mmdb_file_path)
 reader_ASN = maxminddb.open_database(mmdb_file_path_asn)
-
+reader_Country = maxminddb.open_database(mmdb_file_path_country)
 # Crea una lista di tuple con l'indirizzo IP e il paese associato
 geoip2_list = [
     (
     ip_address
-    , get_continent(ip_address, reader)
-    , get_country(ip_address, reader)
-    , get_city(ip_address, reader)
+    , get_continent(ip_address, reader_Country)
+    , get_country(ip_address, reader_Country)
+    #, get_city(ip_address, reader)
     , get_asn_autonomous_system_number(ip_address, reader_ASN)
     , get_asn_autonomous_system_organization(ip_address, reader_ASN)
     ) for ip_address in ip_list
@@ -125,16 +137,16 @@ with open("IP_con_geoip.csv", mode="w", newline="") as csv_file:
         "IPAddress"
         , "Continent"
         , "Country"
-        , "City"
+        #, "City"
         , "ASN-NUM"
         , "ASN-ORG"
         ])
-    for ip_address, continent, country, city, asn_autonomous_system_num, asn_autonomous_system_organization in geoip2_list:
+    for ip_address, continent, country, asn_autonomous_system_num, asn_autonomous_system_org in geoip2_list:
         writer.writerow([
             ip_address
             , continent
             , country
-            , city
+            #, city
             , asn_autonomous_system_num
-            , asn_autonomous_system_organization
+            , asn_autonomous_system_org
             ])

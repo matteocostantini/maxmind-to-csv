@@ -173,30 +173,23 @@ def process_conf(filename):
     return _licensekey, _userid, _editions
 
 
-#if __name__ == "__main__":
-#    usage = "USAGE: %prog [-f license_file] [-d custom_directory]"
-#    version = "%prog Version {0}".format(_version)
-
-#    geoipupdater = OptionParser(usage=usage, version=version)
-
-#    geoipupdater.add_option('-l', '--license', action='callback', type='string', callback=can_read, dest='license',
-#                            help='Provide location of MaxMind license file')
-#    geoipupdater.add_option('-d', '--dir', action='callback', type='string', callback=can_readwrite, dest='dir',
-#                            help='Provide directory GeoIP Files are stored. Defaults to current working directory')
-#    geoipupdater.add_option('-v', '--verbose', action='store_true', dest='verbose',
-#                            help='Enable verbose output', default=False)
-
-#    options, args = geoipupdater.parse_args()
-
-#    if not options.license:
-#        geoipupdater.error("Alert: '-l', '--license' must be provided.")
-
-#    if not options.dir:
-#        options.dir = os.getcwd()
-
-#    licensekey, userid, editions = process_conf(options.license)
-
-#    updater = GeoIpUpdater(options.dir, licensekey, userid, editions, options.verbose)
-#    updater.update_databases()
-#    print("Run Complete")
-#    sys.exit(0)
+if __name__ == "__main__":
+    usage = "USAGE: %prog [-f license_file] [-d custom_directory]"
+    version = "%prog Version {0}".format(_version)
+    geoipupdater = OptionParser(usage=usage, version=version)
+    geoipupdater.add_option('-l', '--license', action='callback', type='string', callback=can_read, dest='license',
+                            help='Provide location of MaxMind license file')
+    geoipupdater.add_option('-d', '--dir', action='callback', type='string', callback=can_readwrite, dest='dir',
+                            help='Provide directory GeoIP Files are stored. Defaults to current working directory')
+    geoipupdater.add_option('-v', '--verbose', action='store_true', dest='verbose',
+                            help='Enable verbose output', default=False)
+    options, args = geoipupdater.parse_args()
+    if not options.license:
+        geoipupdater.error("Alert: '-l', '--license' must be provided.")
+    if not options.dir:
+        options.dir = os.getcwd()
+    licensekey, userid, editions = process_conf(options.license)
+    updater = GeoIpUpdater(options.dir, licensekey, userid, editions, options.verbose)
+    updater.update_databases()
+    print("Run Complete")
+    sys.exit(0)

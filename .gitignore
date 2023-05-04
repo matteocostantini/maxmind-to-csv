@@ -3,6 +3,7 @@ GeoIP.conf
 config.yaml
 GeoLite2-ASN.mmdb
 GeoLite2-City.mmdb
+GeoLite2-Country.mmdb
 .geoipupdate.lock
 IP.csv
 IP_con_geoip.csv
