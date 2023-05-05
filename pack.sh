@@ -14,10 +14,14 @@ pip3.9 install -r requirements.txt
 rm -rf dist
 pyinstaller --clean -y -F  -n MaxMindDB-to-CSV -i logo.ico main.py
 deactivate
-cp config.yaml.example dist/config.yaml
-cp IP.csv dist/.
+cp config.yaml dist/config.yaml
 cd dist/
-bash MaxMindDB-to-CSV --update
+if [ -f IP.csv ]; then
+    echo "Copia del file dalla directory parent!"
+    cp ../IP.csv .
+fi
+chmod +x MaxMindDB-to-CSV
+./MaxMindDB-to-CSV --update
 cp ../tools/geoip_convert-v2-v1.sh ./geoip_convert-v2-v1.sh
 
 if [ -f /usr/share/GeoIP/GeoIP.dat ]; then
