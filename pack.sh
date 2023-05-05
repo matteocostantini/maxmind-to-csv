@@ -14,7 +14,7 @@ pip3.9 install -r requirements.txt
 rm -rf dist
 pyinstaller --clean -y -F  -n MaxMindDB-to-CSV -i logo.ico main.py
 deactivate
-cp config.yaml dist/config.yaml
+cp config.yaml.example dist/config.yaml
 cd dist/
 if [ ! -f IP.csv ]; then
     echo "Creazione del file dalla directory parent!"
