@@ -29,27 +29,27 @@ NAME="$2"
 
 AWK=`which gawk      2>>/dev/null` ; AWK="${AWK:-awk}"
 
-#if python -V 2>&1 | grep -q "Python 2"; then 
-#        PYT="python"
-#    else
-#        PYT=`which python2.7 2>>/dev/null` ; PYT="${PYT:-python2}"
-#fi
-#
-#if ! $PYT -V 2>&1 | grep -q "Python 2"; then 
-#        echo "python2 is needed"
-#        exit
-#fi
-#
-#if pip -V 2>&1 | grep -q "python 2"; then
-#        PIP="pip"
-#    else
-#        PIP=`which pip2.7    2>>/dev/null` ; PIP="${PIP:-pip2}"
-#fi
-#
-#if ! $PIP -V 2>&1 | grep -q "python 2"; then 
-#        echo "python pip is needed"
-#        exit
-#fi
+if python -V 2>&1 | grep -q "Python 2"; then 
+        PYT="python"
+    else
+        PYT=`which python2.7 2>>/dev/null` ; PYT="${PYT:-python2}"
+fi
+
+if ! $PYT -V 2>&1 | grep -q "Python 2"; then 
+        echo "python2 is needed"
+        exit
+fi
+
+if pip -V 2>&1 | grep -q "python 2"; then
+        PIP="pip"
+    else
+        PIP=`which pip2.7    2>>/dev/null` ; PIP="${PIP:-pip2}"
+fi
+
+if ! $PIP -V 2>&1 | grep -q "python 2"; then 
+        echo "python pip is needed"
+        exit
+fi
 
 DATE_TODAY=$(date +"%Y%m%d")
 
