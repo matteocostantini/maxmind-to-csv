@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 import urllib.request
+import urllib.error
 
 # Python Updater For MaxMind GeoIP Subscriptions
 # No Requirements Outside Standard Python Install
@@ -18,11 +19,11 @@ _version = '0.02'
 
 
 class GeoIpUpdater(object):
-    def __init__(self, path, _licensekey, _userid, _editions, verbose=False):
-        self.editions = _editions
+    def __init__(self, path: str, _licensekey, _userid, _editions: list[str], verbose=False):
+        self.editions:list[str] = _editions
         self.ip = 0
         self.licensekey = _licensekey
-        self.path = path
+        self.path: str = path
         self.useragent = "py_geoipupdate/{0}".format(_version)
         self.userid = _userid
         self.verbose = verbose
@@ -69,16 +70,18 @@ class GeoIpUpdater(object):
         return resp.read()
 
     def getupdate(self, dbhash, editionid, filename):
-        req = urllib.Request("{0}://{1}/geoip/databases/{2}/update?db_md5={3}".format(_proto, _update_host, editionid,
+        req = urllib.request.Request("{0}://{1}/geoip/databases/{2}/update?db_md5={3}".format(_proto, _update_host, editionid,
                                                                                        dbhash))
         req.add_header('User-Agent', self.useragent)
-        userauth = base64.b64encode("{0}:{1}".format(self.userid, self.licensekey))
+        arg = "{0}:{1}".format(self.userid, self.licensekey)
+        data_bytes = arg.encode("utf-8")
+        userauth = base64.b64encode(data_bytes)
         req.add_header("Authorization", "Basic {0}".format(userauth))
         if self.verbose:
             print("URL: {0}".format(req.get_full_url()))
         try:
-            resp = urllib.urlopen(req)
-        except urllib.HTTPError as e:
+            resp = urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
             if e.code == 304:
                 if self.verbose:
                     print("No New Updates Available For {0}".format(editionid))
@@ -122,7 +125,10 @@ class GeoIpUpdater(object):
         for edition in self.editions:
             if self.verbose:
                 print("\nRunning For Product: {0}\n".format(edition))
-            filename = self.make_path(self.get_filename(edition))
+            #filename = self.make_path(self.get_filename(edition))
+            filenamenew: str = self.get_filename(edition)
+            path: str = self.path 
+            filename = os.path.join(str(path), str(filenamenew))
             filehash = self.get_md5(filename)
             newfilehash = filehash
             result = True

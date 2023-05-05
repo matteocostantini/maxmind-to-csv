@@ -1,0 +1,10 @@
+Editions: 
+  asn: GeoLite2-ASN
+  city: GeoLite2-City
+  country: GeoLite2-Country
+
+geoipupdater:
+  AccountID: <AccountID>
+  LicenseKey: <LicenseCode>
+
+lang_code: en

@@ -1,152 +1,134 @@
-import csv
+import argparse
+from helpers.GeoIP2Helpers import generateCSVFromGeoIP2Module
 import os
+import urllib.error
+import urllib.request
+import shutil
+import tarfile
 import yaml
-import maxminddb
-from geoipupdate import GeoIpUpdater
 
-# Path al file che contiene i dati del paese associati agli indirizzi IP
-mmdb_file_path = "GeoLite2-City.mmdb"
-mmdb_file_path_asn = "GeoLite2-ASN.mmdb"
-mmdb_file_path_country = "GeoLite2-Country.mmdb"
-# Funzione che restituisce il continente associato all'indirizzo IP
-def get_continent(ip_address, reader):
-    try:
-        response = reader.get(ip_address)    
-    except ValueError:
-        return "N/A"
+config_path = 'config.yaml'
+
+# Valori di default
+default_lang: str = 'en'
+
+default_edition_asn: str = "GeoLite2-ASN"
+default_edition_city: str = "GeoLite2-City"
+default_edition_country: str = "GeoLite2-Country"
+
+# Leggi il file di configurazione YAML
+try:
+    with open(config_path, 'r') as config_file:
+        config = yaml.safe_load(config_file)
+except FileNotFoundError:
+    print(f"File di configurazione {config_path} non trovato. Usando il valore predefinito: {default_lang}")
+    lang_code = default_lang
+    edition_asn = default_edition_asn
+    edition_city = default_edition_city
+    edition_country = default_edition_country
+except:
+    print(f"Errore durante la lettura del file di configurazione {config_path}. Usando il valore predefinito: {default_lang}")
+    lang_code = default_lang
+    edition_asn = default_edition_asn
+    edition_city = default_edition_city
+    edition_country = default_edition_country
+else:
+    edition_asn = config['Editions']['asn']
+    edition_city = config['Editions']['city']
+    edition_country = config['Editions']['country']
+    # Controllo se il valore esiste e se è uno fra it, de, en
+
+    #if config['geoipupdater']
+
+    if 'lang_code' in config and config['lang_code'] in ['it', 'de', 'en']:
+        lang_code = config['lang_code']
+
+    else:
+        print(f"Il valore di lingua nel file di configurazione {config_path} non è uno fra it, de, en. Usando il valore predefinito: {default_lang}")
+        lang_code = default_lang
+
+def updateMMDBDatabase(LicenseKey: str, edition: str = "GeoLite2-ASN" ) -> None:
+    suffix: str = "tar.gz"
+    # Definisci il nome del file
+    filename: str = "{}.{}".format(edition, suffix)
+    filename_mmdb: str = "{}.{}".format(edition, "mmdb")
+    url = "https://download.maxmind.com/app/geoip_download?license_key={}&edition_id={}&suffix=tar.gz".format(LicenseKey, edition)
     
     try:
-        if response==None:
-            return "N/A"
-        else:
-            return response['continent']['names']['en']
-    except KeyError:
-        return "N/A"
-    
-# Funzione che restituisce il paese associato all'indirizzo IP
-def get_country(ip_address, reader):
-    try:
-        response = reader.get(ip_address)    
-    except ValueError:
-        return "N/A"
-    
-    try:
-        if response==None:
-            return "N/A"
-        else:
-            return response['country']['names']['en']
-    except KeyError:
-        return "N/A"
+        retrieved = urllib.request.urlretrieve(url, filename)
+    except urllib.error.HTTPError as e:
+        print(f"Errore: {e}")
+        return
+    filename_mmdb: str = "{}.{}".format(edition, "mmdb")
+    folderName: str = ""
 
-# Funzione che restituisce la citta' associata all'indirizzo IP
-def get_city(ip_address, reader):
-    try:
-        response = reader.get(ip_address)    
-    except ValueError:
-        return "N/A"
-    
-    try:
-        if response==None:
-            return "N/A"
-        else:
-            return response['city']['names']['en']
-    except KeyError:
-        return "N/A"
-    
-def get_asn_autonomous_system_organization(ip_address, reader):
-    try:
-        response = reader.get(ip_address)    
-    except ValueError:
-        return "N/A"
-    
-    try:
-        if response==None:
-            return "N/A"
-        else:
-            return response['autonomous_system_organization']
-    except KeyError:
-        return "N/A"
-    
-def get_asn_autonomous_system_number(ip_address, reader):
-    try:
-        response = reader.get(ip_address)    
-    except ValueError:
-        return "N/A"
-    
-    try:
-        if response==None:
-            return "N/A"
-        else:
-            return response['autonomous_system_number']
-    except KeyError:
-        return "N/A"
+    with tarfile.open(filename, 'r:gz') as tar:
+        # Cicliamo su tutti i membri dell'archivio
+        
+        for member in tar.getmembers():
+            if member.isdir():
+                folderName = member.name
+            # Verifichiamo se il membro corrente è un file
+            if member.isfile():
+                # Estraiamo solo i file di tipo .mmdb
+                if os.path.splitext(member.name)[1] == '.mmdb':
+                    # Estraiamo il file nella cartella corrente
+                    tar.extract(member, './')
 
-    
+    # Definisci il percorso completo della sottocartella
+    percorsoCartellaSorgente = os.path.join(os.getcwd(), folderName)
 
-#usage = "USAGE: %prog [-f license_file] [-d custom_directory]"
-#version = "%prog Version {0}".format(_version)
-#geoipupdater = OptionParser(usage=usage, version=version)
-#licensekey, userid, editions = process_conf(options.license)
+    # Definisci il percorso completo della cartella di destinazione
+    percorsoCartellaDestinazione = os.getcwd()
 
-# Caricamento dei dati di configurazione da un file YAML
-with open('config.yaml') as f:
-    config = yaml.safe_load(f)
+    # Costruisci il percorso completo del file da spostare
+    percorsoFileSorgente = os.path.join(percorsoCartellaSorgente, filename_mmdb)
+    percorsoFileDestinazione = os.path.join(percorsoCartellaDestinazione, filename_mmdb)
 
-#licenseKey = config['geoipupdater']['LicenseKey']
-#accountID = config['geoipupdater']['AccountID']
-#editions = config['geoipupdater']['Editions']
+    # Verifica se il file esiste il percorsoFileSorgente
+    if os.path.exists(percorsoFileSorgente):
+        if os.path.exists(percorsoFileDestinazione):
+            os.remove(percorsoFileDestinazione)
+        # Sposta il file nella cartella di destinazione
+        shutil.move(percorsoFileSorgente, percorsoCartellaDestinazione)
+        print("Il file è stato spostato con successo nella cartella di destinazione.")
+        percorsoFileTarGz = os.path.join(os.getcwd(), filename)
+        if os.path.exists(percorsoFileTarGz):
+            os.remove(percorsoFileTarGz)
+        if os.path.exists(percorsoCartellaSorgente):
+            try:
+                shutil.rmtree(percorsoCartellaSorgente)
+                print("La cartella è stata rimossa con successo.")
+            except PermissionError:
+                print("Non hai i permessi sufficienti per rimuovere il file.")
+            except FileNotFoundError:
+                print("Il file non esiste.")
+    else:
+        print("Il file non esiste nella sottocartella.")
 
 
-#if not config['geoipupdater']['path']:
-#    config['geoipupdater']['path'] = os.getcwd()
+                
 
-#updater = GeoIpUpdater(config['geoipupdater']['path'], licenseKey, accountID, editions, True)
-#updater.update_databases()
-#print("Run Complete")
+def updateMMDBDatabases(LicenseKey: str, asnEdition: str, cityEdition: str, countryEdition: str) -> None:
+    updateMMDBDatabase(LicenseKey, asnEdition)
+    updateMMDBDatabase(LicenseKey, cityEdition)
+    updateMMDBDatabase(LicenseKey, countryEdition)
+        
+# Creazione del parser
+parser = argparse.ArgumentParser(description="Estrai i dati GeoIP2 con 2 librerie opzionali su CSV")
 
+parser.add_argument('--update'
+                    , action='store_true'
+                    , help='Update MMDB database files from MaxMindDB API network'
+                    )
 
-# Apri il file CSV con gli indirizzi IP
-with open("IP.csv") as csv_file:
-    csv_reader = csv.reader(csv_file, delimiter=",")
-    #next(csv_reader) # Salta la prima riga con l'intestazione
-    ip_list = [row[0] for row in csv_reader]
+# Parsing degli argomenti
+args = parser.parse_args()
 
-# Carica il database MaxMindDB
-reader = maxminddb.open_database(mmdb_file_path)
-reader_ASN = maxminddb.open_database(mmdb_file_path_asn)
-reader_Country = maxminddb.open_database(mmdb_file_path_country)
-# Crea una lista di tuple con l'indirizzo IP e il paese associato
-geoip2_list = [
-    (
-    ip_address
-    , get_continent(ip_address, reader_Country)
-    , get_country(ip_address, reader_Country)
-    #, get_city(ip_address, reader)
-    , get_asn_autonomous_system_number(ip_address, reader_ASN)
-    , get_asn_autonomous_system_organization(ip_address, reader_ASN)
-    ) for ip_address in ip_list
-    ]
+if args.update:
+    updateMMDBDatabases(config['geoipupdater']['LicenseKey'], config['Editions']['asn'], config['Editions']['city'], config['Editions']['country'])
 
-# Chiudi il database MaxMindDB
-reader.close()
+# Esempio di utilizzo del codice ISO della lingua
+print(f"Il codice ISO della lingua è: {lang_code}")
 
-# Scrivi i risultati su un nuovo file CSV
-with open("IP_con_geoip.csv", mode="w", newline="") as csv_file:
-    writer = csv.writer(csv_file, delimiter=",")
-    writer.writerow([
-        "IPAddress"
-        , "Continent"
-        , "Country"
-        #, "City"
-        , "ASN-NUM"
-        , "ASN-ORG"
-        ])
-    for ip_address, continent, country, asn_autonomous_system_num, asn_autonomous_system_org in geoip2_list:
-        writer.writerow([
-            ip_address
-            , continent
-            , country
-            #, city
-            , asn_autonomous_system_num
-            , asn_autonomous_system_org
-            ])
+generateCSVFromGeoIP2Module()

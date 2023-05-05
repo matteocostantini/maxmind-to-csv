@@ -1,9 +1,8 @@
 geoipupdate*/
 GeoIP.conf
 config.yaml
-GeoLite2-ASN.mmdb
-GeoLite2-City.mmdb
-GeoLite2-Country.mmdb
+*.mmdb
+*.tar.gz
 .geoipupdate.lock
 IP.csv
 IP_con_geoip.csv
