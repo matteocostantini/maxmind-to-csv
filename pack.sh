@@ -16,9 +16,9 @@ pyinstaller --clean -y -F  -n MaxMindDB-to-CSV -i logo.ico main.py
 deactivate
 cp config.yaml dist/config.yaml
 cd dist/
-if [ -f IP.csv ]; then
-    echo "Copia del file dalla directory parent!"
-    cp ../IP.csv .
+if [ ! -f IP.csv ]; then
+    echo "Creazione del file dalla directory parent!"
+    echo "IP\n8.8.8.8" > IP.csv
 fi
 chmod +x MaxMindDB-to-CSV
 ./MaxMindDB-to-CSV --update
