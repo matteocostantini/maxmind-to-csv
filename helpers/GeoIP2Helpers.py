@@ -92,7 +92,7 @@ def get_asn_autonomous_system_organization(ip_address: geoip2.types.IPAddress, g
     except KeyError:
         return "N/A"
 
-def get_latitude(ip_address: geoip2.types.IPAddress, geoip2Reader: geoip2.database.Reader) -> float|None:
+def get_latitude(ip_address: geoip2.types.IPAddress, geoip2Reader: geoip2.database.Reader):
     try:
         cityModelRecord: geoip2.models.City = get_city_geoip2_record(ip_address, geoip2Reader)    
     except ValueError:
@@ -106,7 +106,7 @@ def get_latitude(ip_address: geoip2.types.IPAddress, geoip2Reader: geoip2.databa
     except KeyError:
         return "N/A"
 
-def get_longitude(ip_address: geoip2.types.IPAddress, geoip2Reader: geoip2.database.Reader) -> float|None:
+def get_longitude(ip_address: geoip2.types.IPAddress, geoip2Reader: geoip2.database.Reader):
     try:
         cityModelRecord: geoip2.models.City = get_city_geoip2_record(ip_address, geoip2Reader)    
     except ValueError:
