@@ -1,3 +1,12 @@
+geoipupdate*/
+GeoIP.conf
+config.yaml
+*.mmdb
+*.tar.gz
+.geoipupdate.lock
+IP.csv
+IP_con_geoip.csv
+venv*/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
